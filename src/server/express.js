@@ -1,7 +1,8 @@
-import path from "path";
+//import path from "path";
 import express from "express";
 
 const server = express();
+const port = process.env.PORT || 8080;
 
 const webpack = require("webpack");
 const config = require("../../config/webpack.dev");
@@ -18,6 +19,6 @@ server.use(webpackHotMiddleware)
 const staticMiddleware = express.static("dist");
 server.use(staticMiddleware);
 
-server.listen(8080, () => {
-  console.log(`Server is running on port 8080`);
+server.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });
