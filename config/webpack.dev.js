@@ -1,5 +1,5 @@
 const path = require("path");
-const webpack = require("webpack");
+//const webpack = require("webpack");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
@@ -14,12 +14,11 @@ module.exports = {
   },
   devServer: {
     contentBase: "dist",
-    hot: true,
     overlay: true
   },
   devtool: "source-map",
   plugins: [
-    new webpack.HotModuleReplacementPlugin(),
+    //new webpack.HotModuleReplacementPlugin(),
     new HtmlWebpackPlugin({
       template: "./src/index.ejs"
     })
