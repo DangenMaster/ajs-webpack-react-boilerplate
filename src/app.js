@@ -1,10 +1,10 @@
 import React from "react";
 import ReactDOM from "react-dom";
+import AppRoot from "./components/AppRoot";
 import { AppContainer } from "react-hot-loader";
-//import Counter from "./counter";
 
 function render(Component) {
-  ReactDOM.render(
+  ReactDOM.hydrate(
     <AppContainer>
       <Component />
     </AppContainer>,
@@ -12,12 +12,12 @@ function render(Component) {
   );
 }
 
-//render(Counter);
+render(AppRoot);
 
-/* if (module.hot) {
-  module.hot.accept("./counter.js", () => {
-    const NewCounter = require("./counter").default;
-    render(NewCounter);
+if (module.hot) {
+  module.hot.accept("./components/AppRoot.js", () => {
+    const NewAppRoot = require("./components/AppRoot.js").default;
+    render(NewAppRoot);
   });
-} */
+}
 

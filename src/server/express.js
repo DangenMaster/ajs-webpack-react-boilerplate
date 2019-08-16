@@ -1,24 +1,58 @@
-//import path from "path";
 import express from "express";
-
 const server = express();
-const port = process.env.PORT || 8080;
+const expressStaticGzip = require("express-static-gzip");
 
-const webpack = require("webpack");
-const config = require("../../config/webpack.dev");
-const compiler = webpack(config);
-const webpackDevMiddleware = require("webpack-dev-middleware")(
-  compiler,
-  config.devServer
-);
-server.use(webpackDevMiddleware);
+import webpack from "webpack";
+import webpackHotServerMiddleware from "webpack-hot-server-middleware";
 
-const webpackHotMiddleware = require("webpack-hot-middleware")(compiler);
-server.use(webpackHotMiddleware)
+import configDevClient from "../../config/webpack.dev-client";
+import configDevServer from "../../config/webpack.dev-server";
+import configProdClient from "../../config/webpack.prod-client";
+import configProdServer from "../../config/webpack.prod-server";
 
-const staticMiddleware = express.static("dist");
-server.use(staticMiddleware);
+const isProd = process.env.NODE_ENV === "production";
+const isDev = !isProd;
+const PORT = process.env.PORT || 8080;
+let isBuilt = false;
 
-server.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
+const done = () => {
+  !isBuilt &&
+    server.listen(PORT, () => {
+      isBuilt = true
+      console.log( `Server listening on http://localhost:${PORT} in ${ process.env.NODE_ENV }` );
+    });
+};
+
+if (isDev) {
+  const compiler = webpack([configDevClient, configDevServer]);
+
+  const clientCompiler = compiler.compilers[0];
+  const serverCompiler = compiler.compilers[1];
+
+  const webpackDevMiddleware = require("webpack-dev-middleware")(
+    compiler,
+    configDevClient.devServer
+  );
+
+  const webpackHotMiddleware = require("webpack-hot-middleware")(
+    clientCompiler,
+    configDevClient.devServer
+  );
+
+  server.use(webpackDevMiddleware);
+  server.use(webpackHotMiddleware);
+  server.use(webpackHotServerMiddleware(compiler));
+  console.log("Middleware enabled");
+  done();
+} else {
+  webpack([configProdClient, configProdServer], (err, stats) => {
+    const clientStats = stats.toJson().children[0];
+    const render = require("../../build/prod-server-bundle.js").default;
+    console.log(
+      stats.toString({ colors: true })
+    );
+    server.use( expressStaticGzip("dist", { enableBrotli: true }) );
+    server.use(render({ clientStats }));
+    done();
+  });
+}
